@@ -32,3 +32,6 @@ start index.html
 - **FontAwesome (via CDN)** for high-quality weather icons
 - **Vanilla JavaScript** (ES6 Async/Await, Fetch API) for fast, keyless API integrations
 - **Open-Meteo API** for live global geocoding and weather parameters
+
+
+## THIS WAS BUILT AND UPLOADED TO GITHUB BY FORGE... USING GITHUB MCP.. BRUHHHH THIS IS GENUINELY COOL!!!!!
