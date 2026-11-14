@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Global Weather Hub</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome for Weather Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: radial-gradient(circle at top right, #0f172a, #020617);
+            min-height: 100vh;
+        }
+        .glass-card {
+            background: rgba(30, 41, 59, 0.45);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+        .glass-card:hover {
+            border-color: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.5);
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.5);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(99, 102, 241, 0.5);
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(99, 102, 241, 0.8);
+        }
+    </style>
+</head>
+<body class="text-slate-100 overflow-x-hidden antialiased">
+    
+    <!-- Top Decorative Gradient Glows -->
+    <div class="absolute top-0 left-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-[120px] pointer-events-none"></div>
+    <div class="absolute top-10 right-1/4 w-96 h-96 bg-indigo-500/10 rounded-full blur-[120px] pointer-events-none"></div>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
+        
+        <!-- Header -->
+        <header class="flex flex-col md:flex-row justify-between items-center gap-6 mb-12">
+            <div>
+                <h1 class="text-4xl font-extrabold tracking-tight bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400 bg-clip-text text-transparent flex items-center gap-3">
+                    <i class="fa-solid fa-cloud-sun-rain text-indigo-400 animate-pulse"></i> Global Weather Hub
+                </h1>
+                <p class="text-slate-400 mt-2 text-sm sm:text-base">Real-time weather metrics for the world's most popular places.</p>
+            </div>
+            
+            <!-- Controls (Search + Toggle Unit) -->
+            <div class="flex flex-wrap items-center gap-4 w-full md:w-auto">
+                <div class="relative flex-grow md:flex-grow-0 md:w-80">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                    </div>
+                    <input type="text" id="city-search" placeholder="Search other cities..." 
+                        class="w-full bg-slate-900/60 border border-slate-700/50 rounded-xl py-2.5 pl-10 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 text-slate-200 placeholder-slate-500 transition-all">
+                    
+                    <!-- Search Results Dropdown -->
+                    <div id="search-dropdown" class="hidden absolute left-0 right-0 mt-2 bg-slate-900/95 border border-slate-700/70 rounded-xl shadow-2xl overflow-hidden z-50">
+                        <!-- Populated via JS -->
+                    </div>
+                </div>
+
+                <div class="flex bg-slate-800/80 p-1 rounded-xl border border-slate-700/50">
+                    <button id="unit-c" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 text-white shadow transition-all">°C</button>
+                    <button id="unit-f" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition-all">°F</button>
+                </div>
+
+                <button id="refresh-all" class="p-2.5 rounded-xl bg-slate-800/80 border border-slate-700/50 hover:bg-slate-700/50 text-indigo-400 hover:text-indigo-300 transition-all" title="Refresh all cards">
+                    <i class="fa-solid fa-rotate animate-duration-1000"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Featured/Detail Dashboard Panel -->
+        <section id="featured-city-panel" class="mb-12 hidden">
+            <!-- Populated dynamically when a card is clicked or a city is searched -->
+        </section>
+
+        <!-- Popular Cities Section -->
+        <section class="mb-8">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-bold text-slate-200 flex items-center gap-2">
+                    <i class="fa-solid fa-star text-amber-400"></i> Popular Places Weather
+                </h2>
+                <span id="last-updated" class="text-xs text-slate-400">Updating...</span>
+            </div>
+
+            <div id="popular-cities-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+                <!-- Weather Cards generated dynamically by JavaScript -->
+                <div class="col-span-full py-12 flex flex-col items-center justify-center text-slate-400">
+                    <i class="fa-solid fa-circle-notch fa-spin text-4xl text-indigo-500 mb-4"></i>
+                    <p>Loading weather data for the world's finest spots...</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="mt-20 border-t border-slate-800/60 pt-6 text-center text-xs text-slate-500">
+            <p>© <span id="current-year"></span> Global Weather Hub. Powered by Open-Meteo API.</p>
+        </footer>
+    </div>
+
+    <!-- Scripts -->
+    <script>
+        document.getElementById('current-year').textContent = new Date().getFullYear();
+
+        // 10 Popular Cities across different continents
+        const POPULAR_CITIES = [
+            { id: "tokyo", name: "Tokyo", country: "Japan", lat: 35.6762, lon: 139.6503, icon: "fa-torii-gate" },
+            { id: "newyork", name: "New York", country: "USA", lat: 40.7128, lon: -74.0060, icon: "fa-statue-of-liberty" },
+            { id: "paris", name: "Paris", country: "France", lat: 48.8566, lon: 2.3522, icon: "fa-landmark" },
+            { id: "london", name: "London", country: "UK", lat: 51.5074, lon: -0.1278, icon: "fa-archway" },
+            { id: "sydney", name: "Sydney", country: "Australia", lat: -33.8688, lon: 151.2093, icon: "fa-ship" },
+            { id: "cairo", name: "Cairo", country: "Egypt", lat: 30.0444, lon: 31.2357, icon: "fa-monument" },
+            { id: "rio", name: "Rio de Janeiro", country: "Brazil", lat: -22.9068, lon: -43.1729, icon: "fa-umbrella-beach" },
+            { id: "dubai", name: "Dubai", country: "UAE", lat: 25.2048, lon: 55.2708, icon: "fa-building" },
+            { id: "capetown", name: "Cape Town", country: "South Africa", lat: -33.9249, lon: 18.4241, icon: "fa-mountain" },
+            { id: "mumbai", name: "Mumbai", country: "India", lat: 19.0760, lon: 72.8777, icon: "fa-gopuram" }
+        ];
+
+        // State variables
+        let tempUnit = localStorage.getItem('weather_unit') || 'C'; // 'C' or 'F'
+        let cachedWeatherData = {};
+        let activeCityId = null;
+
+        // WMO Code interpretation & beautiful icons/backgrounds
+        const WEATHER_CODES = {
+            0: { desc: "Clear sky", icon: "fa-sun text-amber-400", bg: "from-amber-500/20 to-orange-600/5", badge: "bg-amber-500/20 text-amber-300" },
+            1: { desc: "Mainly clear", icon: "fa-cloud-sun text-amber-300", bg: "from-blue-500/20 to-indigo-600/5", badge: "bg-amber-400/10 text-amber-200" },
+            2: { desc: "Partly cloudy", icon: "fa-cloud-sun text-slate-300", bg: "from-blue-500/10 to-indigo-600/5", badge: "bg-slate-500/20 text-slate-300" },
+            3: { desc: "Overcast", icon: "fa-cloud text-slate-400", bg: "from-slate-600/20 to-slate-800/10", badge: "bg-slate-600/20 text-slate-300" },
+            45: { desc: "Foggy", icon: "fa-smog text-slate-400", bg: "from-slate-600/20 to-slate-800/10", badge: "bg-zinc-500/20 text-zinc-300" },
+            48: { desc: "Depositing rime fog", icon: "fa-smog text-sky-200", bg: "from-slate-600/20 to-slate-800/10", badge: "bg-zinc-500/20 text-zinc-300" },
+            51: { desc: "Light drizzle", icon: "fa-cloud-rain text-blue-400", bg: "from-blue-600/20 to-indigo-950/10", badge: "bg-blue-500/20 text-blue-300" },
+            53: { desc: "Moderate drizzle", icon: "fa-cloud-rain text-blue-400", bg: "from-blue-600/20 to-indigo-950/10", badge: "bg-blue-500/20 text-blue-300" },
+            55: { desc: "Dense drizzle", icon: "fa-cloud-rain text-blue-500", bg: "from-blue-600/20 to-indigo-950/10", badge: "bg-blue-500/20 text-blue-300" },
+            61: { desc: "Slight rain", icon: "fa-cloud-showers-heavy text-blue-400", bg: "from-blue-600/20 to-sky-950/10", badge: "bg-blue-500/20 text-blue-300" },
+            63: { desc: "Moderate rain", icon: "fa-cloud-showers-heavy text-blue-500", bg: "from-blue-700/20 to-sky-950/10", badge: "bg-blue-600/20 text-blue-300" },
+            65: { desc: "Heavy rain", icon: "fa-cloud-showers-water text-blue-600 animate-bounce", bg: "from-blue-800/20 to-sky-950/10", badge: "bg-blue-700/20 text-blue-200" },
+            71: { desc: "Slight snow", icon: "fa-snowflake text-sky-300 animate-spin", bg: "from-sky-500/20 to-slate-950/10", badge: "bg-sky-500/20 text-sky-200" },
+            73: { desc: "Moderate snow", icon: "fa-snowflake text-sky-300 animate-spin", bg: "from-sky-500/20 to-slate-950/10", badge: "bg-sky-500/20 text-sky-200" },
+            75: { desc: "Heavy snow", icon: "fa-snowflake text-sky-100 animate-spin", bg: "from-sky-600/20 to-slate-950/10", badge: "bg-sky-500/30 text-sky-100" },
+            77: { desc: "Snow grains", icon: "fa-snowflake text-sky-200", bg: "from-sky-500/20 to-slate-950/10", badge: "bg-sky-500/20 text-sky-200" },
+            80: { desc: "Light showers", icon: "fa-cloud-sun-rain text-blue-400", bg: "from-blue-500/20 to-indigo-950/10", badge: "bg-blue-500/20 text-blue-300" },
+            81: { desc: "Moderate showers", icon: "fa-cloud-showers-heavy text-blue-400", bg: "from-blue-600/20 to-indigo-950/10", badge: "bg-blue-500/20 text-blue-300" },
+            82: { desc: "Violent showers", icon: "fa-cloud-showers-heavy text-blue-500", bg: "from-blue-700/20 to-indigo-950/10", badge: "bg-blue-600/20 text-blue-300" },
+            85: { desc: "Slight snow showers", icon: "fa-cloud-meatball text-sky-300", bg: "from-sky-500/20 to-slate-950/10", badge: "bg-sky-500/20 text-sky-200" },
+            86: { desc: "Heavy snow showers", icon: "fa-cloud-meatball text-sky-200", bg: "from-sky-600/20 to-slate-950/10", badge: "bg-sky-500/30 text-sky-100" },
+            95: { desc: "Thunderstorm", icon: "fa-cloud-bolt text-yellow-400 animate-pulse", bg: "from-purple-800/25 to-zinc-950/15", badge: "bg-yellow-500/20 text-yellow-300" },
+            96: { desc: "Thunderstorm with hail", icon: "fa-cloud-bolt text-yellow-300 animate-pulse", bg: "from-purple-900/25 to-zinc-950/15", badge: "bg-yellow-500/20 text-yellow-300" },
+            99: { desc: "Heavy thunderstorm", icon: "fa-cloud-bolt text-yellow-200 animate-pulse", bg: "from-purple-900/30 to-zinc-950/20", badge: "bg-red-500/20 text-yellow-200" }
+        };
+
+        function getWeatherInfo(code) {
+            return WEATHER_CODES[code] || { desc: "Unknown weather", icon: "fa-cloud text-slate-400", bg: "from-slate-600/10 to-slate-800/5", badge: "bg-slate-500/20 text-slate-300" };
+        }
+
+        // Temperature conversion helper
+        function formatTemp(tempC) {
+            if (tempUnit === 'F') {
+                return Math.round((tempC * 9 / 5) + 32) + '°F';
+            }
+            return Math.round(tempC) + '°C';
+        }
+
+        // Initial setup
+        document.addEventListener('DOMContentLoaded', () => {
+            initUnits();
+            fetchPopularWeather();
+            setupSearch();
+            setupRefresh();
+        });
+
+        // Initialize Temperature Unit Toggles
+        function initUnits() {
+            const btnC = document.getElementById('unit-c');
+            const btnF = document.getElementById('unit-f');
+
+            if (tempUnit === 'F') {
+                btnC.classList.remove('bg-indigo-600', 'text-white');
+                btnC.classList.add('text-slate-400');
+                btnF.classList.add('bg-indigo-600', 'text-white');
+                btnF.classList.remove('text-slate-400');
+            }
+
+            btnC.addEventListener('click', () => {
+                if (tempUnit !== 'C') {
+                    tempUnit = 'C';
+                    localStorage.setItem('weather_unit', 'C');
+                    toggleUnitButtons(btnC, btnF);
+                    renderAll();
+                }
+            });
+
+            btnF.addEventListener('click', () => {
+                if (tempUnit !== 'F') {
+                    tempUnit = 'F';
+                    localStorage.setItem('weather_unit', 'F');
+                    toggleUnitButtons(btnF, btnC);
+                    renderAll();
+                }
+            });
+        }
+
+        function toggleUnitButtons(activeBtn, inactiveBtn) {
+            activeBtn.classList.add('bg-indigo-600', 'text-white');
+            activeBtn.classList.remove('text-slate-400');
+            inactiveBtn.classList.remove('bg-indigo-600', 'text-white');
+            inactiveBtn.classList.add('text-slate-400');
+        }
+
+        // Fetch Weather Data for the 10 popular cities in parallel
+        async function fetchPopularWeather() {
+            const lastUpdatedSpan = document.getElementById('last-updated');
+            lastUpdatedSpan.textContent = "Updating...";
+            
+            try {
+                const promises = POPULAR_CITIES.map(async (city) => {
+                    const url = `https://api.open-meteo.com/v1/forecast?latitude=${city.lat}&longitude=${city.lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,precipitation,weather_code,wind_speed_10m&timezone=auto`;
+                    const res = await fetch(url);
+                    if (!res.ok) throw new Error(`Failed to load weather for ${city.name}`);
+                    const data = await res.json();
+                    
+                    cachedWeatherData[city.id] = {
+                        ...city,
+                        tempC: data.current.temperature_2m,
+                        feelsC: data.current.apparent_temperature,
+                        humidity: data.current.relative_humidity_2m,
+                        wind: data.current.wind_speed_10m,
+                        precip: data.current.precipitation,
+                        code: data.current.weather_code,
+                        isDay: data.current.is_day
+                    };
+                });
+
+                await Promise.all(promises);
+                renderAll();
+                
+                const timeString = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                lastUpdatedSpan.textContent = `Last updated: ${timeString}`;
+            } catch (error) {
+                console.error(error);
+                lastUpdatedSpan.textContent = "Error updating weather";
+                document.getElementById('popular-cities-grid').innerHTML = `
+                    <div class="col-span-full py-12 flex flex-col items-center justify-center text-rose-400">
+                        <i class="fa-solid fa-triangle-exclamation text-4xl mb-4 animate-bounce"></i>
+                        <p class="font-medium">Failed to fetch current weather. Please check your internet connection and try again.</p>
+                        <button onclick="fetchPopularWeather()" class="mt-4 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-500 transition-all text-sm">Retry</button>
+                    </div>
+                `;
+            }
+        }
+
+        // Render everything based on State
+        function renderAll() {
+            renderPopularCards();
+            if (activeCityId && cachedWeatherData[activeCityId]) {
+                renderFeaturedCityPanel(cachedWeatherData[activeCityId]);
+            }
+        }
+
+        // Render Popular Places Cards
+        function renderPopularCards() {
+            const grid = document.getElementById('popular-cities-grid');
+            grid.innerHTML = '';
+
+            POPULAR_CITIES.forEach(city => {
+                const weather = cachedWeatherData[city.id];
+                if (!weather) return;
+
+                const weatherInfo = getWeatherInfo(weather.code);
+                const isActive = activeCityId === city.id;
+                
+                const card = document.createElement('div');
+                card.className = `glass-card group relative p-5 rounded-2xl cursor-pointer transition-all duration-300 flex flex-col justify-between h-48 bg-gradient-to-b ${weatherInfo.bg} ${isActive ? 'ring-2 ring-indigo-500/80 scale-[1.02] border-indigo-500/50' : ''}`;
+                card.onclick = () => selectCity(city.id);
+
+                card.innerHTML = `
+                    <div>
+                        <!-- Header with City, Country & Decorative Monument Icon -->
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h3 class="font-bold text-slate-100 group-hover:text-indigo-400 transition-colors">${city.name}</h3>
+                                <p class="text-xs text-slate-400">${city.country}</p>
+                            </div>
+                            <div class="text-slate-500 group-hover:text-indigo-400/60 transition-colors text-lg">
+                                <i class="fa-solid ${city.icon}"></i>
+                            </div>
+                        </div>
+
+                        <!-- Current weather status badge -->
+                        <div class="mt-3 inline-flex items-center px-2 py-0.5 rounded-full text-2xs font-medium ${weatherInfo.badge}">
+                            ${weatherInfo.desc}
+                        </div>
+                    </div>
+
+                    <!-- Temperature & Condition Icon Row -->
+                    <div class="flex justify-between items-end mt-4">
+                        <span class="text-3xl font-extrabold tracking-tight">${formatTemp(weather.tempC)}</span>
+                        <div class="text-3xl filter drop-shadow-[0_4px_6px_rgba(0,0,0,0.3)]">
+                            <i class="fa-solid ${weatherInfo.icon}"></i>
+                        </div>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        // Select a city to see the detailed featured panel
+        function selectCity(cityId) {
+            activeCityId = cityId;
+            const weather = cachedWeatherData[cityId];
+            if (weather) {
+                renderFeaturedCityPanel(weather);
+                renderPopularCards(); // Refresh cards to show highlight active city
+            }
+        }
+
+        // Render detailed overview panel
+        function renderFeaturedCityPanel(weather) {
+            const panel = document.getElementById('featured-city-panel');
+            panel.classList.remove('hidden');
+
+            const weatherInfo = getWeatherInfo(weather.code);
+
+            panel.innerHTML = `
+                <div class="glass-card rounded-3xl p-6 md:p-8 bg-gradient-to-r ${weatherInfo.bg} relative overflow-hidden transition-all border border-slate-700/50">
+                    <!-- Overlay decorative glows -->
+                    <div class="absolute -right-10 -top-10 w-60 h-60 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center relative z-10">
+                        <!-- Main weather & temperature col -->
+                        <div class="lg:col-span-5 flex items-center justify-between lg:justify-start gap-8 border-b lg:border-b-0 lg:border-r border-slate-700/50 pb-6 lg:pb-0 lg:pr-8">
+                            <div>
+                                <div class="inline-flex items-center gap-1.5 px-3 py-1 bg-indigo-500/10 text-indigo-300 rounded-full text-xs font-semibold mb-3">
+                                    <i class="fa-solid ${weather.icon || 'fa-location-dot'}"></i> Featured Location
+                                </div>
+                                <h2 class="text-3xl md:text-4xl font-extrabold tracking-tight text-white flex items-baseline gap-2">
+                                    ${weather.name}
+                                    <span class="text-lg font-medium text-slate-400">, ${weather.country}</span>
+                                </h2>
+                                <p class="text-slate-400 text-sm mt-1">Latitude: ${weather.lat.toFixed(4)} | Longitude: ${weather.lon.toFixed(4)}</p>
+                                
+                                <div class="flex items-center gap-4 mt-6">
+                                    <span class="text-5xl md:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-slate-50 to-slate-200">${formatTemp(weather.tempC)}</span>
+                                    <div>
+                                        <p class="font-bold text-lg text-slate-100">${weatherInfo.desc}</p>
+                                        <p class="text-xs text-slate-400">Feels like ${formatTemp(weather.feelsC)}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="text-7xl md:text-8xl flex justify-center text-slate-100 filter drop-shadow-[0_10px_15px_rgba(0,0,0,0.4)]">
+                                <i class="fa-solid ${weatherInfo.icon}"></i>
+                            </div>
+                        </div>
+
+                        <!-- Grid details col -->
+                        <div class="lg:col-span-7 grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
+                            <!-- Detail: Humidity -->
+                            <div class="bg-slate-900/40 border border-slate-800/80 p-4 rounded-2xl">
+                                <div class="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center mx-auto mb-3">
+                                    <i class="fa-solid fa-droplet text-lg animate-pulse"></i>
+                                </div>
+                                <p class="text-xs text-slate-400 font-semibold uppercase tracking-wider">Humidity</p>
+                                <p class="text-lg font-bold text-slate-200 mt-1">${weather.humidity}%</p>
+                            </div>
+
+                            <!-- Detail: Wind -->
+                            <div class="bg-slate-900/40 border border-slate-800/80 p-4 rounded-2xl">
+                                <div class="w-10 h-10 rounded-xl bg-teal-500/10 text-teal-400 flex items-center justify-center mx-auto mb-3">
+                                    <i class="fa-solid fa-wind text-lg"></i>
+                                </div>
+                                <p class="text-xs text-slate-400 font-semibold uppercase tracking-wider">Wind Speed</p>
+                                <p class="text-lg font-bold text-slate-200 mt-1">${weather.wind} km/h</p>
+                            </div>
+
+                            <!-- Detail: Precipitation -->
+                            <div class="bg-slate-900/40 border border-slate-800/80 p-4 rounded-2xl">
+                                <div class="w-10 h-10 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center mx-auto mb-3">
+                                    <i class="fa-solid fa-cloud-rain text-lg"></i>
+                                </div>
+                                <p class="text-xs text-slate-400 font-semibold uppercase tracking-wider">Precipitation</p>
+                                <p class="text-lg font-bold text-slate-200 mt-1">${weather.precip} mm</p>
+                            </div>
+
+                            <!-- Detail: Day/Night -->
+                            <div class="bg-slate-900/40 border border-slate-800/80 p-4 rounded-2xl">
+                                <div class="w-10 h-10 rounded-xl ${weather.isDay ? 'bg-amber-500/10 text-amber-400' : 'bg-purple-500/10 text-purple-400'} flex items-center justify-center mx-auto mb-3">
+                                    <i class="fa-solid ${weather.isDay ? 'fa-sun' : 'fa-moon'} text-lg"></i>
+                                </div>
+                                <p class="text-xs text-slate-400 font-semibold uppercase tracking-wider">Time of Day</p>
+                                <p class="text-lg font-bold text-slate-200 mt-1">${weather.isDay ? 'Day' : 'Night'}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            // Scroll to the panel if small screen
+            if (window.innerWidth < 1024) {
+                panel.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+
+        // Setup Manual Refresh Button
+        function setupRefresh() {
+            const btn = document.getElementById('refresh-all');
+            btn.addEventListener('click', async () => {
+                const icon = btn.querySelector('i');
+                icon.classList.add('fa-spin');
+                await fetchPopularWeather();
+                setTimeout(() => {
+                    icon.classList.remove('fa-spin');
+                }, 800);
+            });
+        }
+
+        // Setup Geocoding Search Box
+        function setupSearch() {
+            const searchInput = document.getElementById('city-search');
+            const dropdown = document.getElementById('search-dropdown');
+            let debounceTimer;
+
+            searchInput.addEventListener('input', () => {
+                clearTimeout(debounceTimer);
+                const query = searchInput.value.trim();
+                
+                if (query.length < 2) {
+                    dropdown.classList.add('hidden');
+                    return;
+                }
+
+                debounceTimer = setTimeout(async () => {
+                    try {
+                        const res = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query)}&count=5&language=en&format=json`);
+                        const data = await res.json();
+                        
+                        if (data.results && data.results.length > 0) {
+                            renderSearchResults(data.results);
+                        } else {
+                            dropdown.innerHTML = `<div class="p-4 text-center text-sm text-slate-500">No results found for "${query}"</div>`;
+                            dropdown.classList.remove('hidden');
+                        }
+                    } catch (error) {
+                        console.error("Geocoding fetch error:", error);
+                        dropdown.innerHTML = `<div class="p-4 text-center text-sm text-rose-400">Error searching cities</div>`;
+                        dropdown.classList.remove('hidden');
+                    }
+                }, 300);
+            });
+
+            // Close search results when clicking outside
+            document.addEventListener('click', (e) => {
+                if (!searchInput.contains(e.target) && !dropdown.contains(e.target)) {
+                    dropdown.classList.add('hidden');
+                }
+            });
+        }
+
+        // Render Dropdown Results
+        function renderSearchResults(results) {
+            const dropdown = document.getElementById('search-dropdown');
+            dropdown.innerHTML = '';
+            dropdown.classList.remove('hidden');
+
+            results.forEach(city => {
+                const countryPart = city.country ? `, ${city.country}` : '';
+                const admin1Part = city.admin1 ? `, ${city.admin1}` : '';
+                const option = document.createElement('button');
+                option.className = "w-full text-left px-4 py-3 text-sm text-slate-200 hover:bg-indigo-600/30 border-b border-slate-800/50 last:border-0 transition-colors flex justify-between items-center";
+                
+                option.innerHTML = `
+                    <div>
+                        <span class="font-bold">${city.name}</span>
+                        <span class="text-xs text-slate-400">${admin1Part}${countryPart}</span>
+                    </div>
+                    <span class="text-xs bg-slate-800 text-indigo-400 px-2.5 py-1 rounded-md border border-slate-700">Select</span>
+                `;
+
+                option.onclick = async () => {
+                    dropdown.classList.add('hidden');
+                    document.getElementById('city-search').value = '';
+                    
+                    // Show Loading indicator in active panel
+                    const panel = document.getElementById('featured-city-panel');
+                    panel.classList.remove('hidden');
+                    panel.innerHTML = `
+                        <div class="glass-card rounded-3xl p-12 text-center flex flex-col items-center justify-center text-slate-400 border border-slate-700/50">
+                            <i class="fa-solid fa-circle-notch fa-spin text-4xl text-indigo-500 mb-4"></i>
+                            <p>Loading weather analytics for ${city.name}...</p>
+                        </div>
+                    `;
+                    panel.scrollIntoView({ behavior: 'smooth' });
+
+                    try {
+                        const forecastRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${city.latitude}&longitude=${city.longitude}&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,precipitation,weather_code,wind_speed_10m&timezone=auto`);
+                        const forecastData = await forecastRes.json();
+                        
+                        const searchedCityWeather = {
+                            id: "searched-city",
+                            name: city.name,
+                            country: city.country || 'Unknown',
+                            lat: city.latitude,
+                            lon: city.longitude,
+                            icon: "fa-location-dot",
+                            tempC: forecastData.current.temperature_2m,
+                            feelsC: forecastData.current.apparent_temperature,
+                            humidity: forecastData.current.relative_humidity_2m,
+                            wind: forecastData.current.wind_speed_10m,
+                            precip: forecastData.current.precipitation,
+                            code: forecastData.current.weather_code,
+                            isDay: forecastData.current.is_day
+                        };
+
+                        cachedWeatherData["searched-city"] = searchedCityWeather;
+                        activeCityId = "searched-city";
+                        renderFeaturedCityPanel(searchedCityWeather);
+                    } catch (error) {
+                        console.error("Failed to load forecast for selected city:", error);
+                        panel.innerHTML = `
+                            <div class="glass-card rounded-3xl p-8 text-center text-rose-400 border border-slate-700/50">
+                                <i class="fa-solid fa-circle-exclamation text-3xl mb-3"></i>
+                                <p>Failed to retrieve weather for ${city.name}. Please try again.</p>
+                            </div>
+                        `;
+                    }
+                };
+
+                dropdown.appendChild(option);
+            });
+        }
+    </script>
+</body>
+</html>
